@@ -142,8 +142,13 @@ public class Events implements Listener{
 		
 		@Override
 		public void run(){
+			
+			
+			
 			for(int i = 0; i < Worlds.size(); ++i){
 				World world = Worlds.get(i); 
+				
+				Player randomPlayer = world.getPlayers().get(Random.nextInt(world.getPlayers().size())); 
 				List<Entity> entities = world.getEntities();
 				
 				for(int j = 0; j < entities.size(); ++j){
@@ -158,6 +163,7 @@ public class Events implements Listener{
 					
 					int index = Random.nextInt(Messages.size()); 
 					String message = Messages.get(index); 
+					message = message.replace("$player", randomPlayer.getDisplayName()); 
 					ChatBubble bubble = new ChatBubble(message, entity); 
 					Bubbles.add(bubble); 
 				}
