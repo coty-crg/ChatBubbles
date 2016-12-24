@@ -3,6 +3,7 @@ package com.wanderingcorgi.chatbubbles;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.ArmorStand;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 
@@ -13,11 +14,11 @@ public class ChatBubble {
 	public ArmorStand Stand;
 	
 	public String Message; 
-	public Player Owner;
+	public Entity Owner;
 	
-	public ChatBubble(String message, Player player){
+	public ChatBubble(String message, Entity owner){
 		Message = message; 
-		Owner = player; 
+		Owner = owner; 
 	}
 	
 	public void Create(){
