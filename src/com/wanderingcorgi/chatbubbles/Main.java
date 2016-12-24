@@ -8,14 +8,19 @@ public class Main extends JavaPlugin{
 	public static String dataFolder; 
 	public boolean AmSaving; 
 	
+	Events PluginEvents;
+	
 	public void onEnable(){
 		Bukkit.getConsoleSender().sendMessage("[Starting chat bubble plugin]");
 		dataFolder = getDataFolder().toString(); 
 
-		Events pluginEvents = new Events(this);
+		PluginEvents = new Events(this);
+		Bukkit.getConsoleSender().sendMessage("[Successfully started chat bubble plugin]");
 	}
 	
 	public void onDisable(){
 		Bukkit.getConsoleSender().sendMessage("[Stopping chat bubble plugin]");
+		PluginEvents.KillAllBubbles(); 
+		Bukkit.getConsoleSender().sendMessage("[Successfully stopped chat bubble plugin]");
 	}
 }

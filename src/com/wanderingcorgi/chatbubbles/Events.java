@@ -41,6 +41,14 @@ public class Events implements Listener{
 		scheduler.runTaskTimer(plugin,  new HandleVillagerMessages(), 0l,  20l * 5l); 
 	}
 	
+	public void KillAllBubbles(){
+		for(int i = 0; i < Bubbles.size(); ++i){
+			Bubbles.get(i).Kill();
+		}
+		
+		Bubbles.clear();
+	}
+	
 	public class HandleBubbleCreate implements Runnable{
 		@Override
         public void run(){
@@ -117,7 +125,9 @@ public class Events implements Listener{
 					builder.append(data); 
 				}
 				
-				String alldata = builder.toString().trim(); 	
+				String alldata = builder.toString().trim(); 
+				// Bukkit.getConsoleSender().sendMessage(alldata);
+				
 				JsonReader reader = new JsonReader(new StringReader(alldata));
 				reader.setLenient(true);
 				
@@ -128,7 +138,7 @@ public class Events implements Listener{
 				for(int i = 0; i < messages.size(); ++i){
 					String message = messages.get(i); 
 					
-					if(message == null || message.isEmpty()) 
+					if(message == null || message.isEmpty() || Messages.contains(message)) 
 						continue; 
 					
 					Messages.add(message); 
@@ -144,26 +154,38 @@ public class Events implements Listener{
 		public void run(){
 			
 			
-			
 			for(int i = 0; i < Worlds.size(); ++i){
 				World world = Worlds.get(i); 
 				
-				Player randomPlayer = world.getPlayers().get(Random.nextInt(world.getPlayers().size())); 
+				List<Player> players = world.getPlayers(); 
 				List<Entity> entities = world.getEntities();
 				
 				for(int j = 0; j < entities.size(); ++j){
 					Entity entity = entities.get(j); 
 					
+					// only let villagers speak 
 					if(entity.getType() != EntityType.VILLAGER)
 						continue; 
 					
 					// 1% chance every second 
 					if(Random.nextInt(100) > 1) 
 						continue;
+				
+					// choose some random players to talk about 
+					Player randomPlayer1 = players.get(Random.nextInt(players.size()));
+					Player randomPlayer2 = players.get(Random.nextInt(players.size())); 
 					
+					// choose a message
 					int index = Random.nextInt(Messages.size()); 
 					String message = Messages.get(index); 
-					message = message.replace("$player", randomPlayer.getDisplayName()); 
+					
+					// format it 
+					message = message.replace("$player", "%s"); 
+					message = String.format(message, 
+							randomPlayer1.getDisplayName(), 
+							randomPlayer2.getDisplayName()); 
+					
+					// display it and add to que 
 					ChatBubble bubble = new ChatBubble(message, entity); 
 					Bubbles.add(bubble); 
 				}
