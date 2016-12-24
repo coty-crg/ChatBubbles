@@ -21,6 +21,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.scheduler.BukkitScheduler;
+import org.bukkit.util.Vector;
 
 import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
@@ -36,6 +37,7 @@ public class Events implements Listener{
 		Bukkit.getServer().getPluginManager().registerEvents(this, plugin);
 		
 		BukkitScheduler scheduler = Bukkit.getScheduler(); 
+		scheduler.runTaskTimer(plugin,  new HandleBubbleFollow(), 0l,  1l); 
 		scheduler.runTaskTimer(plugin, new HandleBubbleCreate(), 0l, 1l); 
 		scheduler.runTaskTimer(plugin, new HandleBubbleCleanup(), 20l * 5l, 5l); 
 		scheduler.runTaskTimer(plugin,  new HandleVillagerMessages(), 0l,  20l * 5l); 
@@ -47,6 +49,34 @@ public class Events implements Listener{
 		}
 		
 		Bubbles.clear();
+	}
+	
+	public class HandleBubbleFollow implements Runnable{
+		@Override
+        public void run(){
+			for(int i = 0; i < Bubbles.size(); ++i){
+				ChatBubble bubble = Bubbles.get(i); 
+				if(bubble.CreatedAt == 0l)
+					continue; 
+				
+				Vector ownerPosition = bubble.Owner.getLocation().toVector(); 
+				Vector standPosition = bubble.Stand.getLocation().toVector(); 
+				Vector positionDiff = ownerPosition.clone().subtract(standPosition); //.multiply(2d); 
+				Vector newPosition = standPosition.clone().add(positionDiff); 
+				
+				Location newLocation = new Location(bubble.Owner.getWorld(), 
+						newPosition.getX(), 
+						newPosition.getY(), 
+						newPosition.getZ()); 
+				
+				bubble.Stand.teleport(newLocation); 
+				
+				Vector ownerVelocity = bubble.Owner.getVelocity().clone();
+				Vector newVelocity = ownerVelocity.multiply(2d); 
+				
+				bubble.Stand.setVelocity(newVelocity);
+			}
+		}
 	}
 	
 	public class HandleBubbleCreate implements Runnable{
@@ -159,6 +189,9 @@ public class Events implements Listener{
 				
 				List<Player> players = world.getPlayers(); 
 				List<Entity> entities = world.getEntities();
+				
+				if(players.size() == 0 || entities.size() == 0)
+					continue; 
 				
 				for(int j = 0; j < entities.size(); ++j){
 					Entity entity = entities.get(j); 
