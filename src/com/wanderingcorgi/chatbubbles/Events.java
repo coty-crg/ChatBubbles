@@ -131,12 +131,30 @@ public class Events implements Listener{
 	
 	public class HandleVillagerMessages implements Runnable {
 		
+		String[] PlayerNames; 
 		List<String> Messages; 
 		List<World> Worlds = null; 
 		Random Random; 
 		
 		public class VillagerMessage {
 			public List<String> Messages;
+		}
+		
+		int CountOfSubstring(String original, String substring){
+			int lastIndex = 0;
+			int count = 0;
+
+			while (lastIndex != -1) {
+
+			    lastIndex = original.indexOf(substring, lastIndex);
+
+			    if (lastIndex != -1) {
+			        count++;
+			        lastIndex += original.length();
+			    }
+			}
+			
+			return count; 
 		}
 		
 		public HandleVillagerMessages(){
@@ -156,7 +174,6 @@ public class Events implements Listener{
 				}
 				
 				String alldata = builder.toString().trim(); 
-				// Bukkit.getConsoleSender().sendMessage(alldata);
 				
 				JsonReader reader = new JsonReader(new StringReader(alldata));
 				reader.setLenient(true);
@@ -165,14 +182,23 @@ public class Events implements Listener{
 				Type type = new TypeToken<List<String>>() {}.getType();
 				List<String> messages = gson.fromJson(reader, type);
 				
+				int maxPlayerFoundCount = 0; 
 				for(int i = 0; i < messages.size(); ++i){
 					String message = messages.get(i); 
 					
 					if(message == null || message.isEmpty() || Messages.contains(message)) 
 						continue; 
 					
+					// figure out the max number of random names we need to generate for messages 
+					// players be cray 
+					int countOfPlayer = CountOfSubstring(message.toLowerCase(), "$player"); 
+					if(countOfPlayer > maxPlayerFoundCount)
+						maxPlayerFoundCount = countOfPlayer; 
+					
 					Messages.add(message); 
 				}
+				
+				PlayerNames = new String[maxPlayerFoundCount]; 
 			} catch (MalformedURLException e) {
 				e.printStackTrace();
 			} catch (IOException e) {
@@ -183,15 +209,19 @@ public class Events implements Listener{
 		@Override
 		public void run(){
 			
-			
 			for(int i = 0; i < Worlds.size(); ++i){
 				World world = Worlds.get(i); 
+			
 				
 				List<Player> players = world.getPlayers(); 
 				List<Entity> entities = world.getEntities();
 				
 				if(players.size() == 0 || entities.size() == 0)
 					continue; 
+				
+				for(int j = 0; j < PlayerNames.length; ++j){
+					PlayerNames[j] = players.get(Random.nextInt(players.size())).getDisplayName();
+				}
 				
 				for(int j = 0; j < entities.size(); ++j){
 					Entity entity = entities.get(j); 
@@ -214,9 +244,8 @@ public class Events implements Listener{
 					
 					// format it 
 					message = message.replace("$player", "%s"); 
-					message = String.format(message, 
-							randomPlayer1.getDisplayName(), 
-							randomPlayer2.getDisplayName()); 
+					message = message.replace("$Player", "%s"); 
+					message = String.format(message, PlayerNames); 
 					
 					// display it and add to que 
 					ChatBubble bubble = new ChatBubble(message, entity); 
