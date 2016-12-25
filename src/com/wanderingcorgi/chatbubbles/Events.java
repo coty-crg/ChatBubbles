@@ -191,7 +191,8 @@ public class Events implements Listener{
 					
 					// figure out the max number of random names we need to generate for messages 
 					// players be cray 
-					int countOfPlayer = CountOfSubstring(message.toLowerCase(), "$player"); 
+					int countOfPlayer = CountOfSubstring(message.toLowerCase(), "$player") + 1; 
+					countOfPlayer += CountOfSubstring(message.toLowerCase(), "$Player"); 
 					if(countOfPlayer > maxPlayerFoundCount)
 						maxPlayerFoundCount = countOfPlayer; 
 					
