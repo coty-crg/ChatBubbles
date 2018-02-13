@@ -31,6 +31,10 @@ public class ChatBubble {
 		Stand.setCustomNameVisible(true); 
 		Stand.setVisible(false); 
 		Stand.setCustomName(Message);		
+		Stand.setInvulnerable(true);
+		Stand.setAI(false);
+		Stand.setCollidable(false);
+		Stand.setCanPickupItems(false);
 	}
 	
 	public void Kill(){

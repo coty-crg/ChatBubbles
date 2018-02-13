@@ -1,27 +1,23 @@
 package com.wanderingcorgi.chatbubbles;
 
 import java.io.IOException;
-import java.io.Reader;
 import java.io.StringReader;
 import java.lang.reflect.Type;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.MissingFormatArgumentException;
 import java.util.Random;
 import java.util.Scanner;
 
 import org.bukkit.Bukkit;
-import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.scheduler.BukkitScheduler;
-import org.bukkit.util.Vector;
 
 import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
@@ -59,22 +55,13 @@ public class Events implements Listener{
 				if(bubble.CreatedAt == 0l)
 					continue; 
 				
-				Vector ownerPosition = bubble.Owner.getLocation().toVector(); 
-				Vector standPosition = bubble.Stand.getLocation().toVector(); 
-				Vector positionDiff = ownerPosition.clone().subtract(standPosition); //.multiply(2d); 
-				Vector newPosition = standPosition.clone().add(positionDiff); 
+				if(bubble.Owner == null) {
+					bubble.MarkedForCleanup = true; 
+					continue; 
+				}
 				
-				Location newLocation = new Location(bubble.Owner.getWorld(), 
-						newPosition.getX(), 
-						newPosition.getY(), 
-						newPosition.getZ()); 
-				
-				bubble.Stand.teleport(newLocation); 
-				
-				Vector ownerVelocity = bubble.Owner.getVelocity().clone();
-				Vector newVelocity = ownerVelocity.multiply(2d); 
-				
-				bubble.Stand.setVelocity(newVelocity);
+				bubble.Stand.teleport(bubble.Owner.getLocation()); 
+				bubble.Stand.setVelocity(bubble.Owner.getVelocity());
 			}
 		}
 	}
@@ -164,7 +151,7 @@ public class Events implements Listener{
 			
 			URL url;
 			try {
-				url = new URL("http://archive.4craft.us/data/comments");
+				url = new URL("https://archive.4craft.us/data/comments");
 				Scanner s = new Scanner(url.openStream());
 				
 				StringBuilder builder = new StringBuilder(); 
@@ -225,42 +212,47 @@ public class Events implements Listener{
 				}
 				
 				for(int j = 0; j < entities.size(); ++j){
-					Entity entity = entities.get(j); 
+					try {
+						Entity entity = entities.get(j); 
+						
+						// only let villagers speak 
+						if(entity.getType() != EntityType.VILLAGER)
+							continue; 
+						
+						// 1% chance every second 
+						if(Random.nextInt(100) > 1) 
+							continue;
 					
-					// only let villagers speak 
-					if(entity.getType() != EntityType.VILLAGER)
+						// choose some random players to talk about 
+						Player randomPlayer1 = players.get(Random.nextInt(players.size()));
+						Player randomPlayer2 = players.get(Random.nextInt(players.size())); 
+						
+						// choose a message
+						int index = Random.nextInt(Messages.size()); 
+						String message = Messages.get(index); 
+						
+						// format it 
+						message = message.replace("$player", "%s"); 
+						message = message.replace("$Player", "%s"); 
+						message = String.format(message, PlayerNames); 
+					
+						// display it and add to que 
+						ChatBubble bubble = new ChatBubble(message, entity); 
+						Bubbles.add(bubble); 
+					} catch (MissingFormatArgumentException e) {
 						continue; 
-					
-					// 1% chance every second 
-					if(Random.nextInt(100) > 1) 
-						continue;
-				
-					// choose some random players to talk about 
-					Player randomPlayer1 = players.get(Random.nextInt(players.size()));
-					Player randomPlayer2 = players.get(Random.nextInt(players.size())); 
-					
-					// choose a message
-					int index = Random.nextInt(Messages.size()); 
-					String message = Messages.get(index); 
-					
-					// format it 
-					message = message.replace("$player", "%s"); 
-					message = message.replace("$Player", "%s"); 
-					message = String.format(message, PlayerNames); 
-					
-					// display it and add to que 
-					ChatBubble bubble = new ChatBubble(message, entity); 
-					Bubbles.add(bubble); 
+					}
 				}
 			}
 		}
 	}
 	
-	@EventHandler
+	// disabled for 4craft 
+	/*@EventHandler
 	public void AsyncPlayerChatEvent(AsyncPlayerChatEvent event){
 		String message = event.getMessage(); 
 		Player player = event.getPlayer(); 
 		ChatBubble bubble = new ChatBubble(message, player); 
 		Bubbles.add(bubble); 
-	}
+	}*/
 }
